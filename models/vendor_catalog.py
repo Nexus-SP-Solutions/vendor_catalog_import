@@ -62,7 +62,7 @@ def _download_first_ok(url: str):
     if not (requests and url): return None
     for c in _iter_getpicture_candidates(url):
         try:
-            r = requests.get(c, timeout=30)
+            r = requests.get(c, timeout=(3, 8))
             if r.ok and r.content: return r.content
         except Exception:
             continue
@@ -239,7 +239,7 @@ class VendorCatalogConfig(models.Model):
 
             ctx = self.env.context or {}
 
-            if ctx.get('ignore_limit'):
+            if ctx.get('ignore_limit') or ctx.get('from_shell'):
 
                 if isinstance(kwargs, dict):
 
@@ -376,7 +376,30 @@ class VendorCatalogConfig(models.Model):
         desc_html = (item.get('description_ecommerce') or item.get('website_description') or
                      item.get('description') or item.get('description_sale'))
         if desc_html and 'description_ecommerce' in ProductT._fields:
+
             vals['description_ecommerce'] = desc_html
+
+            if 'description_sale' in ProductT._fields:
+
+                vals['description_sale'] = False
+
+            if 'website_description' in ProductT._fields:
+
+                vals['website_description'] = False
+
+            if 'website_short_description' in ProductT._fields:
+
+                vals['website_short_description'] = False
+
+            # limpiar campos de descripción corta para no duplicar en la web
+
+            if 'description_sale' in ProductT._fields:
+
+                vals['description_sale'] = False
+
+            if 'website_description' in ProductT._fields:
+
+                vals['website_description'] = False
         if 'x_vendor_stock' in ProductT._fields:
             try: vstock = int(item.get('vendor_stock') or item.get('stock') or item.get('stock_total') or 0)
             except Exception: vstock = 0
@@ -455,9 +478,9 @@ class VendorCatalogConfig(models.Model):
                 replace = bool(self.env.context.get("replace_gallery"))
                 tmpl.vc_apply_gallery_urls(urls, replace=replace)
             except Exception as _e:  # no cuenta como fallo del producto
-                _logger = globals().get("_logger")
-                if _logger:
-                    _logger.info("Galería saltada %s: %s", item.get("sku") or item.get("default_code") or "N/A", _e)
+                logger = __import__("logging").getLogger(__name__)
+                if logger:
+                    logger.debug("Galería saltada %s: %s", item.get("sku") or item.get("default_code") or "N/A", _e)
 
 
         return tmpl, was_created

@@ -68,7 +68,39 @@ def _download(url, referer=None):
     candidates = list(_iter_getpicture_variants(url)) or [url]
     for candidate in candidates:
         try:
-            r = requests.get(candidate, **kw)
+            kw.setdefault('timeout', (3, 8))
+
+            # Reutilizar conexiones (pool) para acelerar descargas repetidas
+
+            _rq = requests
+
+            try:
+
+                _SESSION
+
+            except NameError:
+
+                from requests.adapters import HTTPAdapter
+
+                try:
+
+                    from urllib3.util.retry import Retry
+
+                    _retry = Retry(total=1, backoff_factor=0.25, status_forcelist=[502,503,504], allowed_methods=["GET","HEAD"])
+
+                except Exception:
+
+                    _retry = None
+
+                _SESSION = _rq.Session()
+
+                ha = HTTPAdapter(pool_connections=40, pool_maxsize=40, max_retries=_retry) if _retry else HTTPAdapter(pool_connections=40, pool_maxsize=40)
+
+                _SESSION.mount('http://', ha)
+
+                _SESSION.mount('https://', ha)
+
+            r = _SESSION.get(candidate, **kw)
             if r.ok and r.content:
                 return r.content
             _logger.debug("Vendor gallery: HTTP %s on %s", getattr(r, "status_code", "?"), candidate)

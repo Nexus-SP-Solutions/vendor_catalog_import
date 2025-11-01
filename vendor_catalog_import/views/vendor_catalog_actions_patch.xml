@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <!-- Sobreescribe la acción para abrir con archivados incluidos por defecto -->
+  <record id="action_vendor_catalog_config" model="ir.actions.act_window">
+    <field name="context">{'active_test': False, 'search_default_show_all': 1}</field>
+  </record>
+</odoo>

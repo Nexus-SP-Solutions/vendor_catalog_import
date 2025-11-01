@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <!-- Mostrar stock debajo del H1 refrescando (SSR) con TTL -->
+  <template id="product_vendor_stock" inherit_id="website_sale.product"
+            name="Mostrar stock proveedor (SSR)" priority="95">
+    <xpath expr="//h1[@itemprop='name'] | //div[@id='product_details']//h1 | //h1" position="after">
+      <t t-if="'x_vendor_stock' in product._fields">
+        <t t-set="vend_stock" t-value="product.sudo().with_context(force_refresh=True).website_refresh_vendor_stock()"/>
+        <div class="o_vendor_stock fs-5 mb-2">
+          <span class="me-1"><i class="fa fa-truck"/></span>
+          Stock: <strong t-esc="vend_stock"/>
+        </div>
+      </t>
+    </xpath>
+  </template>
+</odoo>

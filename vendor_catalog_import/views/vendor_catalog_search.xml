@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <!-- Search view con 'Todos' por defecto -->
+  <record id="view_vendor_catalog_config_search" model="ir.ui.view">
+    <field name="name">vendor.catalog.config.search</field>
+    <field name="model">vendor.catalog.config</field>
+    <field name="arch" type="xml">
+      <search string="Configuraciones">
+        <field name="name"/>
+        <field name="vendor_id" string="Proveedor"/>
+
+        <!-- Quitar default de Activos -->
+        <filter name="show_active" string="Activos"
+                domain="[]"
+                context="{'active_test': True}"/>
+
+        <filter name="show_archived" string="Archivados"
+                domain="[('active','=',False)]"
+                context="{'active_test': False}"/>
+
+        <!-- Poner default en Todos -->
+        <filter name="show_all" string="Todos"
+                domain="[]"
+                context="{'active_test': False, 'search_default_show_all': 1}"/>
+
+        <separator/>
+        <group expand="0" string="Agrupar por">
+          <filter name="grp_vendor" string="Proveedor" context="{'group_by':'vendor_id'}"/>
+        </group>
+      </search>
+    </field>
+  </record>
+
+  <!-- La acción sigue usando esta search view -->
+  <record id="action_vendor_catalog_config" model="ir.actions.act_window">
+    <field name="search_view_id" ref="vendor_catalog_import.view_vendor_catalog_config_search"/>
+  </record>
+</odoo>
